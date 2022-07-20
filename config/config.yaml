@@ -1,0 +1,3 @@
+video_path: videos
+artifacts_path: 'artifacts'
+params_path: 'params.yaml'
