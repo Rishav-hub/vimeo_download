@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, send_file
+from flask import Flask, flash, render_template, request, send_file
 from werkzeug.utils import secure_filename
 from flask_cors import CORS, cross_origin
 import numpy as np
@@ -43,10 +43,13 @@ def embedfile():
                 # print(file_name)
                 # download_folder = f'artifacts/{file_name}'
             elif level == 'Level 1':
-                obj.level_1_embed_link(folder_link)
+                flash('Level 1 is not yet implemented')
+                # obj.level_1_embed_link(folder_link)
                 # file_name = os.listdir('artifacts')[0]
                 # download_folder = f'artifacts/{file_name}'
             elif level == 'Level 2':
+                flash('Level 2 is not yet implemented')
+            
                 obj.level_2_embed_link(folder_link)
                 # file_name = os.listdir('artifacts')[0]
                 # download_folder = f'artifacts/{file_name}'

@@ -19,10 +19,9 @@ from urllib.request import Request, urlopen, urlretrieve
 
 
 class VimeoEmbed:
-    def __init__(self, secret_path, config_path, video_list_path):
+    def __init__(self, secret_path, config_path):
         self.secrets = read_yaml(secret_path)
         self.config = read_yaml(config_path)
-        self.video_list_path = read_yaml(video_list_path)
 
 
         # vimeo authentication
@@ -31,8 +30,8 @@ class VimeoEmbed:
         self.keys = self.vimeo_path["key"]
         self.sec = self.vimeo_path["secret"]
 
-        self.downloaded_videos_list = self.video_list_path['downloaded_videos_list']
-        self.failed_videos_list = self.video_list_path['failed_videos_list']
+        # self.downloaded_videos_list = self.video_list_path['downloaded_videos_list']
+        # self.failed_videos_list = self.video_list_path['failed_videos_list']
         
 
         # config setup
@@ -45,7 +44,6 @@ class VimeoEmbed:
     def level_0_embed_link(self, link):
         try:
             # logging.info('>>>>>>>Level 0 Process Started')
-            print(self.downloaded_videos_list, self.failed_videos_list)
             uri_id = extract_uri_id_link(link)
             video_response_data_list = videos_response(self.client, uri_id)
             
@@ -58,13 +56,17 @@ class VimeoEmbed:
 
             # link_response['uri'].split('/')[-1]
             #read video response data and save in yaml
-
-            root_folder_name = []
+            downlaoded_video_list = []
+            failed_video_list = []
+            downlaoded_video_list_link = []
+            failed_video_list_link = []
+            # root_folder_name = []
             for video_data in video_response_data_list:
                 for i in video_data:
                     video_name = i['name']
                     # download_link_list.append(i['player_embed_url'])
-                    root_folder_name.append(folder_name)
+                    # root_folder_name.append(folder_name)
+                    video_id = i['uri'].split('/')[-1]
                     for downloads in i['download']:
                         if downloads['height'] == 1080:
                             # download_link_list.append(downloads['link'])
@@ -73,14 +75,26 @@ class VimeoEmbed:
                             if r.status_code == 200:
                                 open(os.path.join(os.path.join(self.uploader_path, folder_name), f'{video_name}.mp4')\
                                             , 'wb').write(r.content)
-                                self.downloaded_videos_list.append(video_id)
+                                downlaoded_video_list.append(video_id)
+                                downlaoded_video_list_link.append(downloads['link'])
                             else:
-                                self.failed_videos_list.append(video_id)
+                                print(f"Failed to download video with ID {video_id}")
+                                failed_video_list.append(video_id)
+                                failed_video_list_link.append(downloads['link'])
                                 pass
-            
-                # wget.download(download_link, self.uploader_path, )
+            downloaded_data = {'Downloaded_Video_ID': downlaoded_video_list, 'Downloaded_Video_Link': downlaoded_video_list_link}
+            failed_data = {'Failed_Video_ID': failed_video_list, 'Failed_Video_Link': failed_video_list_link}
+
+            # make directory for each folder for downloaded videos
+            os.makedirs(os.path.join('artifacts', 'downloaded_data'), exist_ok=True)
+            os.makedirs(os.path.join('artifacts', 'failed_data'), exist_ok=True)
+            # save data to dataframe
+            downloaded_df = pd.DataFrame(downloaded_data)
+            failed_df = pd.DataFrame(failed_data)
+            # save data to csv
+            downloaded_df.to_csv(os.path.join('artifacts', 'downloaded_data', f'{folder_name}_downloaded_data.csv'), index=False)
+            failed_df.to_csv(os.path.join('artifacts', 'failed_data', f'{folder_name}_failed_data.csv'), index=False)
         except Exception as e:
-            # logging.info(e)
             raise e
     
     def level_1_embed_link(self, link):
