@@ -1,5 +1,5 @@
 # Vimeo_Automation
-
+Only works if we have videos inside a folder. Won't work with folder inside a folder.
 ## How to run
 - Inside the secrets folder you will get the secret.yaml
 - Add the credentials of
