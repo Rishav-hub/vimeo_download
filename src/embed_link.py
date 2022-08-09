@@ -60,7 +60,8 @@ class VimeoEmbed:
             failed_video_list = []
             downlaoded_video_list_link = []
             failed_video_list_link = []
-            # root_folder_name = []
+            downloaded_video_name_list = []
+
             for video_data in video_response_data_list:
                 for i in video_data:
                     video_name = i['name']
@@ -70,24 +71,32 @@ class VimeoEmbed:
                     for downloads in i['download']:
                         if downloads['height'] == 1080:
                             # download_link_list.append(downloads['link'])
-                            r = requests.get(downloads['link'], stream=True)
+                            r = requests.get(downloads['link'], stream=True, verify=False)
                             # prin status code
                             if r.status_code == 200:
+                                print("Downloading video: " + video_name)
                                 open(os.path.join(os.path.join(self.uploader_path, folder_name), f'{video_name}.mp4')\
                                             , 'wb').write(r.content)
                                 downlaoded_video_list.append(video_id)
                                 downlaoded_video_list_link.append(downloads['link'])
+                                downloaded_video_name_list.append(i['name'])
+
                             else:
                                 print(f"Failed to download video with ID {video_id}")
                                 failed_video_list.append(video_id)
                                 failed_video_list_link.append(downloads['link'])
+                                # video_name_list.append(i['name'])
+
                                 pass
-            downloaded_data = {'Downloaded_Video_ID': downlaoded_video_list, 'Downloaded_Video_Link': downlaoded_video_list_link}
-            failed_data = {'Failed_Video_ID': failed_video_list, 'Failed_Video_Link': failed_video_list_link}
+            downloaded_data = {'Downloaded_Video_ID': downlaoded_video_list, 'Downloaded_Video_Link': \
+                                    downlaoded_video_list_link, 'Video_Name': downloaded_video_name_list}
+            failed_data = {'Failed_Video_ID': failed_video_list, 'Failed_Video_Link': failed_video_list_link\
+                                    }
 
             # make directory for each folder for downloaded videos
             os.makedirs(os.path.join('artifacts', 'downloaded_data'), exist_ok=True)
             os.makedirs(os.path.join('artifacts', 'failed_data'), exist_ok=True)
+
             # save data to dataframe
             downloaded_df = pd.DataFrame(downloaded_data)
             failed_df = pd.DataFrame(failed_data)
